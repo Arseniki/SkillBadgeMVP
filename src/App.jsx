@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { initBlockchain, connectWallet, mintBadge, getBadgesOfAddress, getGasPrice, formatTxHash } from "./blockchain";
 
 // ============ TAILWIND CONFIG (custom colors via inline styles) ============
-// We use CSS variables via a style tag injected in root
-
 const THEME_VARS = {
   light: {
     '--bg': '#F0F4FF',
@@ -314,18 +313,11 @@ function Apprenant({ currentUser, data, onLogout, onNavigate, onTheme, showToast
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <Navbar title="Apprenant" icon="🎓" user={currentUser} onLogout={onLogout} onTheme={onTheme} />
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '20px 24px' }}>
-        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h2 style={{ fontWeight: 800, marginBottom: 4 }}>{student.name}</h2>
-            <p style={{ color: 'var(--text2)', fontSize: 14 }}>📍 Ouagadougou, Burkina Faso</p>
-          </div>
-          <div style={{ background: 'var(--bg2)', borderRadius: 20, padding: '8px 16px', fontSize: 13, fontWeight: 600, border: '1px solid var(--border)' }}>
-            📈 Progression: {progress}%
-          </div>
+          <div><h2 style={{ fontWeight: 800, marginBottom: 4 }}>{student.name}</h2><p style={{ color: 'var(--text2)', fontSize: 14 }}>📍 Ouagadougou, Burkina Faso</p></div>
+          <div style={{ background: 'var(--bg2)', borderRadius: 20, padding: '8px 16px', fontSize: 13, fontWeight: 600, border: '1px solid var(--border)' }}>📈 Progression: {progress}%</div>
         </div>
 
-        {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 24 }}>
           {[
             { icon: '🏅', num: student.badges.length, label: 'Badges obtenus' },
@@ -342,32 +334,21 @@ function Apprenant({ currentUser, data, onLogout, onNavigate, onTheme, showToast
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
-          {/* Badges */}
           <Card>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ fontWeight: 700 }}>🎓 Mes badges</h3>
-              <Badge>{filtered.length} badges</Badge>
-            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}><h3 style={{ fontWeight: 700 }}>🎓 Mes badges</h3><Badge>{filtered.length} badges</Badge></div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
               {[['all', 'Tous'], ['expert', '🔴 Experts'], ['inter', '🟡 Interm.'], ['debutant', '🟢 Débutants']].map(([v, l]) => (
                 <button key={v} onClick={() => setFilter(v)} style={{ padding: '6px 14px', borderRadius: 40, border: '1px solid var(--border)', background: filter === v ? 'var(--primary)' : 'var(--bg)', color: filter === v ? '#fff' : 'var(--text)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', fontWeight: filter === v ? 700 : 400 }}>{l}</button>
               ))}
             </div>
-            {filtered.length === 0
-              ? <p style={{ textAlign: 'center', padding: 32, color: 'var(--text2)' }}>Aucun badge dans cette catégorie</p>
-              : filtered.map((b, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>🏅 {b.name}</span>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <Badge color={levelColor(b.level)} small>{b.level}</Badge>
-                    <Badge small>✓ Vérifié</Badge>
-                  </div>
-                </div>
-              ))
-            }
+            {filtered.length === 0 ? <p style={{ textAlign: 'center', padding: 32, color: 'var(--text2)' }}>Aucun badge dans cette catégorie</p> : filtered.map((b, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>🏅 {b.name}</span>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}><Badge color={levelColor(b.level)} small>{b.level}</Badge><Badge small>✓ Vérifié</Badge></div>
+              </div>
+            ))}
           </Card>
 
-          {/* Détail + Notifs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <Card>
               <h3 style={{ fontWeight: 700, marginBottom: 12 }}>ℹ️ Dernier badge</h3>
@@ -397,7 +378,6 @@ function Apprenant({ currentUser, data, onLogout, onNavigate, onTheme, showToast
           </div>
         </div>
 
-        {/* Portfolio share */}
         <Card style={{ marginBottom: 20 }}>
           <h3 style={{ fontWeight: 700, marginBottom: 16 }}>🔗 Partager mon portfolio</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
@@ -420,35 +400,9 @@ function Apprenant({ currentUser, data, onLogout, onNavigate, onTheme, showToast
           </div>
         </Card>
 
-        {/* Progress + Recommended */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-          <Card>
-            <h3 style={{ fontWeight: 700, marginBottom: 16 }}>📊 Ma progression</h3>
-            {[['React.js', 85], ['Flutter', 60], ['UI/UX Design', 45], ['Python', 30]].map(([s, v]) => (
-              <div key={s} style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 13, marginBottom: 5 }}>{s}</p>
-                <ProgressBar value={v} />
-              </div>
-            ))}
-          </Card>
-          <Card>
-            <h3 style={{ fontWeight: 700, marginBottom: 16 }}>💡 Badges recommandés</h3>
-            {recommended.length === 0
-              ? <p style={{ color: 'var(--text2)', fontSize: 13 }}>🎉 Vous avez tous les badges disponibles !</p>
-              : recommended.map((b, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>💎 {b.name}</span>
-                  <Btn small onClick={() => showToast(`Demande envoyée pour "${b.name}"`)}>Postuler →</Btn>
-                </div>
-              ))
-            }
-            <h3 style={{ fontWeight: 700, margin: '16px 0 12px' }}>🏆 Accomplissements</h3>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {['🚀 Premier badge', '📈 Multi-skills', '✨ Vérifié blockchain'].map(a => (
-                <span key={a} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 20, padding: '4px 10px', fontSize: 11 }}>{a}</span>
-              ))}
-            </div>
-          </Card>
+          <Card><h3 style={{ fontWeight: 700, marginBottom: 16 }}>📊 Ma progression</h3>{[['React.js', 85], ['Flutter', 60], ['UI/UX Design', 45], ['Python', 30]].map(([s, v]) => (<div key={s} style={{ marginBottom: 12 }}><p style={{ fontSize: 13, marginBottom: 5 }}>{s}</p><ProgressBar value={v} /></div>))}</Card>
+          <Card><h3 style={{ fontWeight: 700, marginBottom: 16 }}>💡 Badges recommandés</h3>{recommended.length === 0 ? <p style={{ color: 'var(--text2)', fontSize: 13 }}>🎉 Vous avez tous les badges disponibles !</p> : recommended.map((b, i) => (<div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 8 }}><span style={{ fontSize: 13, fontWeight: 600 }}>💎 {b.name}</span><Btn small onClick={() => showToast(`Demande envoyée pour "${b.name}"`)}>Postuler →</Btn></div>))}<h3 style={{ fontWeight: 700, margin: '16px 0 12px' }}>🏆 Accomplissements</h3><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{['🚀 Premier badge', '📈 Multi-skills', '✨ Vérifié blockchain'].map(a => (<span key={a} style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 20, padding: '4px 10px', fontSize: 11 }}>{a}</span>))}</div></Card>
         </div>
       </div>
     </div>
@@ -468,16 +422,54 @@ function Formateur({ currentUser, data, setData, onLogout, onNavigate, onTheme, 
   const [studentFilter, setStudentFilter] = useState('');
   const [assigning, setAssigning] = useState(false);
   const [showModal, setShowModal] = useState(null);
+  const [useRealBlockchain, setUseRealBlockchain] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
+  const [gasPrice, setGasPrice] = useState('0');
 
   const levelMap = { debutant: 'Débutant', intermediaire: 'Intermédiaire', avance: 'Avancé' };
   const skillIcon = s => ({ 'Développement Web': '⚛️', 'Développement Mobile': '📱', 'Data & IA': '🐍', 'Cybersécurité': '🔒', 'UI/UX Design': '🎨' }[s] || '💻');
 
-  const createBadge = () => {
+  // Connecter MetaMask
+  const connectMetaMask = async () => {
+    const result = await connectWallet();
+    if (result.success) {
+      setWalletConnected(true);
+      setWalletAddress(result.address);
+      const price = await getGasPrice();
+      setGasPrice(parseFloat(price).toFixed(2));
+      showToast(`✅ Wallet connecté: ${result.address.substring(0, 8)}...`);
+    } else {
+      showToast(`❌ Erreur: ${result.error}`);
+    }
+  };
+
+  const createBadge = async () => {
     if (!badgeName) { showToast('Entrez un nom de badge'); return; }
-    const tx = '0x' + Math.random().toString(36).substring(2, 14);
-    const nb = { id: Date.now(), name: badgeName, skill: badgeSkill, level: levelMap[badgeLevel], desc: badgeDesc, issuer: currentUser.name, date: new Date().toLocaleDateString('fr-FR'), tx };
-    setData(d => ({ ...d, badges: [...d.badges, nb], activities: [`✅ Badge "${badgeName}" créé · TX: ${tx}`, ...d.activities] }));
-    showToast(`🎉 Badge "${badgeName}" créé !`);
+    
+    let txHash;
+    if (useRealBlockchain && walletConnected) {
+      showToast('⏳ Émission du badge sur Polygon...');
+      const result = await mintBadge(
+        '0x' + '0'.repeat(40), // Adresse du contrat (à remplacer)
+        badgeName,
+        levelMap[badgeLevel],
+        `ipfs://metadata/${badgeName.replace(/\s/g, '_')}`
+      );
+      if (!result.success) {
+        showToast(`❌ Erreur: ${result.error}`);
+        return;
+      }
+      txHash = result.txHash;
+      showToast(`✅ Badge émis sur Polygon! TX: ${formatTxHash(txHash)}`);
+    } else {
+      await new Promise(r => setTimeout(r, 800));
+      txHash = '0x' + Math.random().toString(36).substring(2, 14);
+      showToast(`🎉 Badge simulé: ${badgeName}`);
+    }
+    
+    const nb = { id: Date.now(), name: badgeName, skill: badgeSkill, level: levelMap[badgeLevel], desc: badgeDesc, issuer: currentUser.name, date: new Date().toLocaleDateString('fr-FR'), tx: txHash };
+    setData(d => ({ ...d, badges: [...d.badges, nb], activities: [`✅ Badge "${badgeName}" créé · TX: ${txHash}`, ...d.activities] }));
     setBadgeName(''); setBadgeDesc('');
   };
 
@@ -507,14 +499,28 @@ function Formateur({ currentUser, data, setData, onLogout, onNavigate, onTheme, 
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <Navbar title="Formateur" icon="📋" user={currentUser} onLogout={onLogout} onTheme={onTheme} />
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '20px 24px' }}>
-        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <h2 style={{ fontWeight: 800 }}>Tableau de bord Formateur</h2>
-            <p style={{ color: 'var(--text2)', fontSize: 14 }}>📋 CodeLab BF · Ouagadougou</p>
-          </div>
+          <div><h2 style={{ fontWeight: 800 }}>Tableau de bord Formateur</h2><p style={{ color: 'var(--text2)', fontSize: 14 }}>📋 CodeLab BF · Ouagadougou</p></div>
           <Badge>⛓️ Wallet: 0xKoanda...7b4e</Badge>
         </div>
+
+        {/* Toggle Blockchain */}
+        <Card style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input type="checkbox" checked={useRealBlockchain} onChange={e => setUseRealBlockchain(e.target.checked)} style={{ width: 18, height: 18 }} />
+                <span style={{ fontSize: 14, fontWeight: 500 }}>⛓️ Utiliser la vraie blockchain Polygon (Testnet)</span>
+              </label>
+            </div>
+            {useRealBlockchain && !walletConnected && (
+              <Btn onClick={connectMetaMask} small>🔌 Connecter MetaMask</Btn>
+            )}
+            {useRealBlockchain && walletConnected && (
+              <Badge>✅ {walletAddress.substring(0, 10)}... · Gas: {gasPrice} Gwei</Badge>
+            )}
+          </div>
+        </Card>
 
         {/* KPIs */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 24 }}>
@@ -536,7 +542,6 @@ function Formateur({ currentUser, data, setData, onLogout, onNavigate, onTheme, 
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
-          {/* Créer badge */}
           <Card>
             <h3 style={{ fontWeight: 700, marginBottom: 16 }}>➕ Créer un badge</h3>
             <Input label="Nom du badge" placeholder="Ex: React.js Avancé" value={badgeName} onChange={e => setBadgeName(e.target.value)} />
@@ -554,7 +559,6 @@ function Formateur({ currentUser, data, setData, onLogout, onNavigate, onTheme, 
               <textarea rows={2} placeholder="Maîtrise des hooks, API REST..." value={badgeDesc} onChange={e => setBadgeDesc(e.target.value)}
                 style={{ width: '100%', padding: '12px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }} />
             </div>
-            {/* Preview */}
             <div style={{ background: 'linear-gradient(135deg, var(--bg), var(--bg2))', border: '1px solid var(--border)', borderRadius: 16, padding: 16, textAlign: 'center', marginBottom: 12 }}>
               <div style={{ width: 56, height: 56, background: 'linear-gradient(135deg, var(--primary), var(--accent))', borderRadius: 18, margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>{skillIcon(badgeSkill)}</div>
               <h4 style={{ fontWeight: 700 }}>{badgeName || 'Nom du badge'}</h4>
@@ -566,7 +570,6 @@ function Formateur({ currentUser, data, setData, onLogout, onNavigate, onTheme, 
           </Card>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Attribuer */}
             <Card>
               <h3 style={{ fontWeight: 700, marginBottom: 16 }}>👤 Attribuer un badge</h3>
               <Select label="Badge" value={assignBadge} onChange={e => setAssignBadge(e.target.value)} options={[{ value: '', label: '-- Sélectionner --' }, ...data.badges.map(b => ({ value: b.name, label: `${b.name} (${b.level})` }))]} />
@@ -579,91 +582,28 @@ function Formateur({ currentUser, data, setData, onLogout, onNavigate, onTheme, 
               <p style={{ fontSize: 11, color: 'var(--text2)', marginBottom: 10 }}>🔒 Action irréversible sur la blockchain</p>
               <Btn onClick={assignBadgeFn} disabled={assigning} style={{ width: '100%' }}>{assigning ? '⏳ Émission...' : '⛓️ Émettre sur blockchain'}</Btn>
             </Card>
-            {/* Stats */}
-            <Card>
-              <h3 style={{ fontWeight: 700, marginBottom: 14 }}>📊 Statistiques</h3>
-              {[['Débutants', 30], ['Intermédiaires', 45], ['Avancés', 25], ['Dév. Web', 65]].map(([l, v]) => (
-                <div key={l} style={{ marginBottom: 10 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}><span>{l}</span><span style={{ color: 'var(--text2)' }}>{v}%</span></div>
-                  <ProgressBar value={v} />
-                </div>
-              ))}
-            </Card>
+            <Card><h3 style={{ fontWeight: 700, marginBottom: 14 }}>📊 Statistiques</h3>{[['Débutants', 30], ['Intermédiaires', 45], ['Avancés', 25], ['Dév. Web', 65]].map(([l, v]) => (<div key={l} style={{ marginBottom: 10 }}><div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}><span>{l}</span><span style={{ color: 'var(--text2)' }}>{v}%</span></div><ProgressBar value={v} /></div>))}</Card>
           </div>
         </div>
 
-        {/* Badges créés */}
         <Card style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
             <h3 style={{ fontWeight: 700 }}>📋 Mes badges créés</h3>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <input placeholder="🔍 Rechercher..." value={badgeFilter} onChange={e => setBadgeFilter(e.target.value)}
-                style={{ padding: '8px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 13, outline: 'none' }} />
-              <Btn outline small onClick={exportCSV}>⬇️ Export CSV</Btn>
-            </div>
+            <div style={{ display: 'flex', gap: 10 }}><input placeholder="🔍 Rechercher..." value={badgeFilter} onChange={e => setBadgeFilter(e.target.value)} style={{ padding: '8px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 13, outline: 'none' }} /><Btn outline small onClick={exportCSV}>⬇️ Export CSV</Btn></div>
           </div>
-          {filteredBadges.map((b, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 600 }}>🏷️ {b.name}</span>
-              <Badge>{b.level} · {b.skill}</Badge>
-              <span style={{ fontSize: 11, color: 'var(--text2)', fontFamily: 'monospace' }}>TX: {b.tx}</span>
-            </div>
-          ))}
+          {filteredBadges.map((b, i) => (<div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}><span style={{ fontSize: 14, fontWeight: 600 }}>🏷️ {b.name}</span><Badge>{b.level} · {b.skill}</Badge><span style={{ fontSize: 11, color: 'var(--text2)', fontFamily: 'monospace' }}>TX: {b.tx}</span></div>))}
         </Card>
 
-        {/* Apprenants */}
         <Card style={{ marginBottom: 20 }}>
           <h3 style={{ fontWeight: 700, marginBottom: 14 }}>👥 Mes apprenants</h3>
-          <input placeholder="🔍 Filtrer par nom..." value={studentFilter} onChange={e => setStudentFilter(e.target.value)}
-            style={{ width: '100%', padding: '10px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 13, outline: 'none', marginBottom: 12, boxSizing: 'border-box' }} />
-          {filteredStudents.map((s, i) => (
-            <div key={i} onClick={() => setShowModal(s)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer', flexWrap: 'wrap', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Avatar initials={s.avatar} size={32} />
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 600 }}>{s.name}</p>
-                  <span style={{ fontSize: 11, color: 'var(--text2)', fontFamily: 'monospace' }}>{s.wallet}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Badge>{s.badges.length} badges</Badge>
-                <span style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>Score {s.score}</span>
-                <Btn small outline onClick={e => { e.stopPropagation(); setAssignStudent(s.name); showToast(`Sélectionné: ${s.name}`); }}>+ Attribuer</Btn>
-              </div>
-            </div>
-          ))}
+          <input placeholder="🔍 Filtrer par nom..." value={studentFilter} onChange={e => setStudentFilter(e.target.value)} style={{ width: '100%', padding: '10px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 13, outline: 'none', marginBottom: 12, boxSizing: 'border-box' }} />
+          {filteredStudents.map((s, i) => (<div key={i} onClick={() => setShowModal(s)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer', flexWrap: 'wrap', gap: 8 }}><div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><Avatar initials={s.avatar} size={32} /><div><p style={{ fontSize: 14, fontWeight: 600 }}>{s.name}</p><span style={{ fontSize: 11, color: 'var(--text2)', fontFamily: 'monospace' }}>{s.wallet}</span></div></div><div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><Badge>{s.badges.length} badges</Badge><span style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>Score {s.score}</span><Btn small outline onClick={e => { e.stopPropagation(); setAssignStudent(s.name); showToast(`Sélectionné: ${s.name}`); }}>+ Attribuer</Btn></div></div>))}
         </Card>
 
-        {/* Activité */}
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <h3 style={{ fontWeight: 700 }}>⏱️ Activité blockchain récente</h3>
-            <Btn small outline onClick={() => showToast('Actualisé')}>🔄 Rafraîchir</Btn>
-          </div>
-          {data.activities.slice(0, 5).map((a, i) => (
-            <div key={i} style={{ background: 'var(--bg)', borderRadius: 12, padding: 12, marginBottom: 8, fontSize: 13 }}>⛓️ {a}</div>
-          ))}
-        </Card>
+        <Card><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><h3 style={{ fontWeight: 700 }}>⏱️ Activité blockchain récente</h3><Btn small outline onClick={() => showToast('Actualisé')}>🔄 Rafraîchir</Btn></div>{data.activities.slice(0, 5).map((a, i) => (<div key={i} style={{ background: 'var(--bg)', borderRadius: 12, padding: 12, marginBottom: 8, fontSize: 13 }}>⛓️ {a}</div>))}</Card>
       </div>
 
-      {/* Modal étudiant */}
-      {showModal && (
-        <div onClick={() => setShowModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg2)', borderRadius: 24, padding: 32, maxWidth: 500, width: '100%', maxHeight: '80vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-              <h3 style={{ fontWeight: 800 }}>{showModal.name}</h3>
-              <button onClick={() => setShowModal(null)} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 20, width: 32, height: 32, cursor: 'pointer', color: 'var(--text)' }}>✕</button>
-            </div>
-            <p style={{ color: 'var(--text2)', marginBottom: 6 }}>📍 {showModal.city} · ⛓️ {showModal.wallet}</p>
-            <p style={{ marginBottom: 12, fontWeight: 600 }}>🏅 {showModal.badges.length} badges · Score {showModal.score}</p>
-            <ProgressBar value={showModal.score} />
-            <div style={{ marginTop: 16 }}>
-              {showModal.badges.map((b, i) => <div key={i} style={{ background: 'var(--bg)', borderRadius: 10, padding: '8px 12px', marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}><span>{b}</span><Badge small>✓</Badge></div>)}
-            </div>
-            <Btn onClick={() => { setAssignStudent(showModal.name); setShowModal(null); showToast(`Sélectionné: ${showModal.name}`); }} style={{ width: '100%', marginTop: 16 }}>➕ Attribuer un badge</Btn>
-          </div>
-        </div>
-      )}
+      {showModal && (<div onClick={() => setShowModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}><div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg2)', borderRadius: 24, padding: 32, maxWidth: 500, width: '100%', maxHeight: '80vh', overflowY: 'auto' }}><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}><h3 style={{ fontWeight: 800 }}>{showModal.name}</h3><button onClick={() => setShowModal(null)} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 20, width: 32, height: 32, cursor: 'pointer', color: 'var(--text)' }}>✕</button></div><p style={{ color: 'var(--text2)', marginBottom: 6 }}>📍 {showModal.city} · ⛓️ {showModal.wallet}</p><p style={{ marginBottom: 12, fontWeight: 600 }}>🏅 {showModal.badges.length} badges · Score {showModal.score}</p><ProgressBar value={showModal.score} /><div style={{ marginTop: 16 }}>{showModal.badges.map((b, i) => (<div key={i} style={{ background: 'var(--bg)', borderRadius: 10, padding: '8px 12px', marginBottom: 6, display: 'flex', justifyContent: 'space-between' }}><span>{b}</span><Badge small>✓</Badge></div>))}</div><Btn onClick={() => { setAssignStudent(showModal.name); setShowModal(null); showToast(`Sélectionné: ${showModal.name}`); }} style={{ width: '100%', marginTop: 16 }}>➕ Attribuer un badge</Btn></div></div>)}
     </div>
   );
 }
@@ -679,6 +619,7 @@ function Recruteur({ data, onNavigate, onTheme, showToast }) {
   const [candidateSearch, setCandidateSearch] = useState('');
   const [shortlist, setShortlist] = useLocalStorage('skillbadge_shortlist', ['Oumar Sawadogo', 'Aminata Koné']);
   const [history, setHistory] = useLocalStorage('verif_history', []);
+  const [useRealBlockchain, setUseRealBlockchain] = useState(false);
 
   const verify = async (student) => {
     setLoading(true);
@@ -689,17 +630,44 @@ function Recruteur({ data, onNavigate, onTheme, showToast }) {
     showToast(`✅ Vérifié: ${student.name}`);
   };
 
-  const verifyByWallet = async () => {
-    const s = data.students.find(s => s.wallet.toLowerCase().includes(walletInput.toLowerCase()));
-    if (s) await verify(s); else showToast('❌ Adresse introuvable');
+  const verifyOnChain = async (address) => {
+    setLoading(true);
+    const result = await getBadgesOfAddress(address);
+    if (result.success) {
+      const mockStudent = {
+        name: 'Candidat On-Chain',
+        avatar: 'BC',
+        city: 'Blockchain',
+        badges: result.badges.map(b => `Badge #${b.id}`),
+        score: 85,
+        wallet: address
+      };
+      setResult(mockStudent);
+      setHistory([{ name: mockStudent.name, time: new Date().toISOString() }, ...history.slice(0, 9)]);
+      showToast(`✅ Vérifié on-chain: ${address.substring(0, 10)}...`);
+    } else {
+      showToast('⚠️ Adresse non trouvée');
+    }
+    setLoading(false);
   };
+
+  const verifyByWallet = async () => {
+    if (useRealBlockchain) {
+      await verifyOnChain(walletInput);
+    } else {
+      const s = data.students.find(s => s.wallet.toLowerCase().includes(walletInput.toLowerCase()));
+      if (s) await verify(s); else showToast('❌ Adresse introuvable');
+    }
+  };
+
   const verifyByName = async () => {
     const s = data.students.find(s => s.name.toLowerCase().includes(nameInput.toLowerCase()));
     if (s) await verify(s); else showToast('❌ Candidat introuvable');
   };
+
   const quickVerify = async (name) => {
     const s = data.students.find(st => st.name === name);
-    if (s) { setNameInput(name); await verify(s); }
+    if (s) { setNameInput(s.name); await verify(s); }
   };
 
   const addShortlist = () => {
@@ -726,165 +694,50 @@ function Recruteur({ data, onNavigate, onTheme, showToast }) {
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <Navbar title="Recruteur" icon="🏢" user={null} onLogout={null} onTheme={onTheme} />
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '20px 24px' }}>
-        <div style={{ marginBottom: 24 }}>
-          <h2 style={{ fontWeight: 800 }}>🔍 Portail Recruteur</h2>
-          <p style={{ color: 'var(--text2)', fontSize: 14 }}>Vérifiez instantanément les compétences d'un candidat sur la blockchain Polygon</p>
-        </div>
+        <div style={{ marginBottom: 24 }}><h2 style={{ fontWeight: 800 }}>🔍 Portail Recruteur</h2><p style={{ color: 'var(--text2)', fontSize: 14 }}>Vérifiez instantanément les compétences d'un candidat sur la blockchain Polygon</p></div>
 
-        {/* Stats */}
+        {/* Toggle Blockchain */}
+        <Card style={{ marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <input type="checkbox" checked={useRealBlockchain} onChange={e => setUseRealBlockchain(e.target.checked)} style={{ width: 18, height: 18 }} />
+              <span style={{ fontSize: 14, fontWeight: 500 }}>⛓️ Utiliser la blockchain réelle (vérification on-chain)</span>
+            </label>
+          </div>
+        </Card>
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 24 }}>
           {[
             { icon: '👥', num: data.students.length, label: 'Talents vérifiés' },
             { icon: '🏅', num: totalBadges, label: 'Badges émis' },
             { icon: '✅', num: Math.floor(Math.random() * 15 + 5), label: "Vérif. aujourd'hui" },
             { icon: '⚡', num: '<3s', label: 'Temps de vérif' },
-          ].map((s, i) => (
-            <Card key={i} style={{ textAlign: 'center', padding: 16 }}>
-              <div style={{ fontSize: 28 }}>{s.icon}</div>
-              <div style={{ fontSize: 26, fontWeight: 800, background: 'linear-gradient(135deg, var(--primary), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.num}</div>
-              <p style={{ fontSize: 12, color: 'var(--text2)' }}>{s.label}</p>
-            </Card>
-          ))}
+          ].map((s, i) => (<Card key={i} style={{ textAlign: 'center', padding: 16 }}><div style={{ fontSize: 28 }}>{s.icon}</div><div style={{ fontSize: 26, fontWeight: 800, background: 'linear-gradient(135deg, var(--primary), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.num}</div><p style={{ fontSize: 12, color: 'var(--text2)' }}>{s.label}</p></Card>))}
         </div>
 
-        {/* Vérification */}
         <Card style={{ marginBottom: 20 }}>
           <h3 style={{ fontWeight: 700, marginBottom: 16 }}>🔍 Vérifier un candidat</h3>
           <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-            {[['wallet', '🔗 Wallet'], ['qr', '📱 QR Code'], ['manual', '🔍 Nom']].map(([v, l]) => (
-              <button key={v} onClick={() => setMethod(v)} style={{ flex: 1, minWidth: 100, padding: '10px 14px', borderRadius: 14, border: `1px solid ${method === v ? 'var(--primary)' : 'var(--border)'}`, background: method === v ? 'rgba(0,158,96,0.1)' : 'var(--bg)', color: method === v ? 'var(--primary-l)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', fontWeight: method === v ? 700 : 400 }}>{l}</button>
-            ))}
+            {[['wallet', '🔗 Wallet'], ['qr', '📱 QR Code'], ['manual', '🔍 Nom']].map(([v, l]) => (<button key={v} onClick={() => setMethod(v)} style={{ flex: 1, minWidth: 100, padding: '10px 14px', borderRadius: 14, border: `1px solid ${method === v ? 'var(--primary)' : 'var(--border)'}`, background: method === v ? 'rgba(0,158,96,0.1)' : 'var(--bg)', color: method === v ? 'var(--primary-l)' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', fontWeight: method === v ? 700 : 400 }}>{l}</button>))}
           </div>
 
-          {method === 'wallet' && (
-            <div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <input placeholder="0xOumar...3f2a" value={walletInput} onChange={e => setWalletInput(e.target.value)}
-                  style={{ flex: 1, padding: '12px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'monospace', fontSize: 13, outline: 'none' }} />
-                <Btn onClick={verifyByWallet} disabled={loading}>{loading ? '⏳' : '✓ Vérifier'}</Btn>
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-                {data.students.map(s => (
-                  <button key={s.name} onClick={() => { setWalletInput(s.wallet); }} style={{ padding: '5px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>📋 {s.name.split(' ')[0]}</button>
-                ))}
-              </div>
-            </div>
-          )}
+          {method === 'wallet' && (<div><div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}><input placeholder={useRealBlockchain ? "0x..." : "0xOumar...3f2a"} value={walletInput} onChange={e => setWalletInput(e.target.value)} style={{ flex: 1, padding: '12px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'monospace', fontSize: 13, outline: 'none' }} /><Btn onClick={verifyByWallet} disabled={loading}>{loading ? '⏳' : '✓ Vérifier'}</Btn></div>{!useRealBlockchain && (<div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>{data.students.map(s => (<button key={s.name} onClick={() => { setWalletInput(s.wallet); }} style={{ padding: '5px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>📋 {s.name.split(' ')[0]}</button>))}</div>)}</div>)}
 
-          {method === 'qr' && (
-            <div style={{ textAlign: 'center', padding: 24, background: 'var(--bg)', borderRadius: 16 }}>
-              <div style={{ fontSize: 72, marginBottom: 12 }}>▦</div>
-              <p style={{ color: 'var(--text2)', fontSize: 13, marginBottom: 16 }}>Scannez le QR code présenté par le candidat</p>
-              <Btn onClick={() => verify(data.students[0])}>📷 Simuler un scan</Btn>
-            </div>
-          )}
+          {method === 'qr' && (<div style={{ textAlign: 'center', padding: 24, background: 'var(--bg)', borderRadius: 16 }}><div style={{ fontSize: 72, marginBottom: 12 }}>▦</div><p style={{ color: 'var(--text2)', fontSize: 13, marginBottom: 16 }}>Scannez le QR code présenté par le candidat</p><Btn onClick={() => verify(data.students[0])}>📷 Simuler un scan</Btn></div>)}
 
-          {method === 'manual' && (
-            <div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <input placeholder="Nom du candidat..." value={nameInput} onChange={e => setNameInput(e.target.value)}
-                  style={{ flex: 1, padding: '12px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 13, outline: 'none' }} />
-                <Btn onClick={verifyByName} disabled={loading}>{loading ? '⏳' : '🔍 Rechercher'}</Btn>
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-                {data.students.map(s => (
-                  <button key={s.name} onClick={() => quickVerify(s.name)} style={{ padding: '5px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>👤 {s.name}</button>
-                ))}
-              </div>
-            </div>
-          )}
+          {method === 'manual' && (<div><div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}><input placeholder="Nom du candidat..." value={nameInput} onChange={e => setNameInput(e.target.value)} style={{ flex: 1, padding: '12px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 13, outline: 'none' }} /><Btn onClick={verifyByName} disabled={loading}>{loading ? '⏳' : '🔍 Rechercher'}</Btn></div><div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>{data.students.map(s => (<button key={s.name} onClick={() => quickVerify(s.name)} style={{ padding: '5px 12px', borderRadius: 20, border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>👤 {s.name}</button>))}</div></div>)}
         </Card>
 
-        {/* Résultat */}
-        {result && (
-          <div style={{ background: 'rgba(0,158,96,0.07)', border: '1px solid var(--primary)', borderLeft: '4px solid var(--primary)', borderRadius: 20, padding: 24, marginBottom: 24, animation: 'fadeIn 0.3s' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <Avatar initials={result.avatar} size={48} />
-                <div>
-                  <h3 style={{ fontWeight: 800, fontSize: 20 }}>{result.name}</h3>
-                  <p style={{ color: 'var(--text2)', fontSize: 13 }}>{result.badges.length} badges valides · {result.city}</p>
-                </div>
-              </div>
-              <div style={{ fontSize: 40, fontWeight: 800, background: 'linear-gradient(135deg, var(--primary), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{result.score}</div>
-            </div>
-            <div style={{ background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 12, fontFamily: 'monospace', color: 'var(--text2)' }}>
-              ⛓️ Vérifié sur Polygon Mainnet · Hash: 0x{Math.random().toString(36).substring(2, 14)} · {new Date().toLocaleString('fr-FR')}
-            </div>
-            <h4 style={{ marginBottom: 10, fontWeight: 700 }}>🏅 Badges certifiés</h4>
-            {result.badges.map((b, i) => {
-              const bi = data.badges.find(bd => bd.name === b);
-              return (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 6, flexWrap: 'wrap', gap: 8 }}>
-                  <span style={{ fontWeight: 600 }}>🏅 {b}</span>
-                  <Badge small>{bi?.level || 'Vérifié'}</Badge>
-                  <span style={{ fontSize: 11, color: 'var(--text2)' }}>{bi?.issuer}</span>
-                  <Badge small>✓ Valide</Badge>
-                </div>
-              );
-            })}
-            <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-              <Btn onClick={() => showToast(`📧 Message envoyé à ${result.name}`)}>📧 Contacter</Btn>
-              <Btn outline onClick={() => showToast('📄 PDF exporté')}>📄 Export</Btn>
-              <Btn outline onClick={addShortlist}>⭐ Shortlist</Btn>
-            </div>
-          </div>
-        )}
+        {result && (<div style={{ background: 'rgba(0,158,96,0.07)', border: '1px solid var(--primary)', borderLeft: '4px solid var(--primary)', borderRadius: 20, padding: 24, marginBottom: 24, animation: 'fadeIn 0.3s' }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}><div style={{ display: 'flex', alignItems: 'center', gap: 14 }}><Avatar initials={result.avatar} size={48} /><div><h3 style={{ fontWeight: 800, fontSize: 20 }}>{result.name}</h3><p style={{ color: 'var(--text2)', fontSize: 13 }}>{result.badges.length} badges valides · {result.city}</p></div></div><div style={{ fontSize: 40, fontWeight: 800, background: 'linear-gradient(135deg, var(--primary), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{result.score}</div></div><div style={{ background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 12, fontFamily: 'monospace', color: 'var(--text2)' }}>⛓️ Vérifié sur Polygon Mainnet · Hash: 0x{Math.random().toString(36).substring(2, 14)} · {new Date().toLocaleString('fr-FR')}</div><h4 style={{ marginBottom: 10, fontWeight: 700 }}>🏅 Badges certifiés</h4>{result.badges.map((b, i) => { const bi = data.badges.find(bd => bd.name === b); return (<div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '10px 14px', marginBottom: 6, flexWrap: 'wrap', gap: 8 }}><span style={{ fontWeight: 600 }}>🏅 {b}</span><Badge small>{bi?.level || 'Vérifié'}</Badge><span style={{ fontSize: 11, color: 'var(--text2)' }}>{bi?.issuer}</span><Badge small>✓ Valide</Badge></div>);})}<div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}><Btn onClick={() => showToast(`📧 Message envoyé à ${result.name}`)}>📧 Contacter</Btn><Btn outline onClick={() => showToast('📄 PDF exporté')}>📄 Export</Btn><Btn outline onClick={addShortlist}>⭐ Shortlist</Btn></div></div>)}
 
-        {/* Filtres skills */}
-        <Card style={{ marginBottom: 20 }}>
-          <h3 style={{ fontWeight: 700, marginBottom: 14 }}>🔽 Filtrer par compétence</h3>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-            {[['all', 'Tous'], ['React', '⚛️ React'], ['Flutter', '📱 Flutter'], ['UI/UX', '🎨 UI/UX'], ['Python', '🐍 Python']].map(([v, l]) => (
-              <button key={v} onClick={() => setSkillFilter(v)} style={{ padding: '6px 14px', borderRadius: 20, border: `1px solid ${skillFilter === v ? 'var(--primary)' : 'var(--border)'}`, background: skillFilter === v ? 'var(--primary)' : 'var(--bg)', color: skillFilter === v ? '#fff' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>{l}</button>
-            ))}
-          </div>
-          <input placeholder="Rechercher par nom..." value={candidateSearch} onChange={e => setCandidateSearch(e.target.value)}
-            style={{ width: '100%', padding: '12px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} />
-        </Card>
+        <Card style={{ marginBottom: 20 }}><h3 style={{ fontWeight: 700, marginBottom: 14 }}>🔽 Filtrer par compétence</h3><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>{[['all', 'Tous'], ['React', '⚛️ React'], ['Flutter', '📱 Flutter'], ['UI/UX', '🎨 UI/UX'], ['Python', '🐍 Python']].map(([v, l]) => (<button key={v} onClick={() => setSkillFilter(v)} style={{ padding: '6px 14px', borderRadius: 20, border: `1px solid ${skillFilter === v ? 'var(--primary)' : 'var(--border)'}`, background: skillFilter === v ? 'var(--primary)' : 'var(--bg)', color: skillFilter === v ? '#fff' : 'var(--text)', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>{l}</button>))}</div><input placeholder="Rechercher par nom..." value={candidateSearch} onChange={e => setCandidateSearch(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, color: 'var(--text)', fontFamily: 'inherit', fontSize: 13, outline: 'none', boxSizing: 'border-box' }} /></Card>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-          {/* Candidats */}
-          <Card>
-            <h3 style={{ fontWeight: 700, marginBottom: 14 }}>👥 Talents vérifiés</h3>
-            {filteredCandidates.map((s, i) => (
-              <div key={i} onClick={() => quickVerify(s.name)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <Avatar initials={s.avatar} size={32} />
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>{s.name}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 12, color: 'var(--text2)' }}>{s.badges.length} badges</span>
-                  <Badge small>Score {s.score}</Badge>
-                </div>
-              </div>
-            ))}
-          </Card>
+          <Card><h3 style={{ fontWeight: 700, marginBottom: 14 }}>👥 Talents vérifiés</h3>{filteredCandidates.map((s, i) => (<div key={i} onClick={() => quickVerify(s.name)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Avatar initials={s.avatar} size={32} /><span style={{ fontSize: 14, fontWeight: 600 }}>{s.name}</span></div><div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 12, color: 'var(--text2)' }}>{s.badges.length} badges</span><Badge small>Score {s.score}</Badge></div></div>))}</Card>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Historique */}
-            <Card>
-              <h3 style={{ fontWeight: 700, marginBottom: 12 }}>📜 Historique</h3>
-              {history.length === 0 ? <p style={{ color: 'var(--text2)', fontSize: 13 }}>Aucune vérification</p> : history.slice(0, 5).map((h, i) => (
-                <div key={i} onClick={() => quickVerify(h.name)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '8px 12px', marginBottom: 6, cursor: 'pointer' }}>
-                  <span style={{ fontSize: 13 }}>👤 {h.name}</span>
-                  <Badge small>{formatAgo(h.time)}</Badge>
-                </div>
-              ))}
-            </Card>
-            {/* Shortlist */}
-            <Card>
-              <h3 style={{ fontWeight: 700, marginBottom: 12 }}>⭐ Shortlist ({shortlist.length})</h3>
-              {shortlist.length === 0 ? <p style={{ color: 'var(--text2)', fontSize: 13 }}>Aucun candidat</p> : shortlist.map((name, i) => {
-                const s = data.students.find(st => st.name === name);
-                return (
-                  <div key={i} onClick={() => quickVerify(name)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
-                    <span style={{ fontSize: 13 }}>👤 {name}</span>
-                    <Badge small>Score {s?.score || 0}</Badge>
-                  </div>
-                );
-              })}
-            </Card>
+            <Card><h3 style={{ fontWeight: 700, marginBottom: 12 }}>📜 Historique</h3>{history.length === 0 ? <p style={{ color: 'var(--text2)', fontSize: 13 }}>Aucune vérification</p> : history.slice(0, 5).map((h, i) => (<div key={i} onClick={() => quickVerify(h.name)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg)', borderRadius: 12, padding: '8px 12px', marginBottom: 6, cursor: 'pointer' }}><span style={{ fontSize: 13 }}>👤 {h.name}</span><Badge small>{formatAgo(h.time)}</Badge></div>))}</Card>
+            <Card><h3 style={{ fontWeight: 700, marginBottom: 12 }}>⭐ Shortlist ({shortlist.length})</h3>{shortlist.length === 0 ? <p style={{ color: 'var(--text2)', fontSize: 13 }}>Aucun candidat</p> : shortlist.map((name, i) => { const s = data.students.find(st => st.name === name); return (<div key={i} onClick={() => quickVerify(name)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}><span style={{ fontSize: 13 }}>👤 {name}</span><Badge small>Score {s?.score || 0}</Badge></div>); })}</Card>
           </div>
         </div>
       </div>
@@ -901,14 +754,12 @@ export default function App() {
   const [data, setData] = useLocalStorage('skillbadge_blockchain', INITIAL_DATA);
   const [toasts, setToasts] = useState([]);
 
-  // Nav event listener
   useEffect(() => {
     const handler = e => setPage(e.detail);
     window.addEventListener('navigate', handler);
     return () => window.removeEventListener('navigate', handler);
   }, []);
 
-  // Restore session
   useEffect(() => {
     if (currentUser) {
       if (page === 'home' || page === 'login' || page === 'loginFormateur') {
@@ -934,7 +785,6 @@ export default function App() {
 
   const logout = () => { setCurrentUser(null); setPage('home'); };
 
-  // Apply theme vars
   const vars = THEME_VARS[theme] || THEME_VARS.light;
   const style = Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(';');
 
