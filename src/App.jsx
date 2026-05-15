@@ -171,7 +171,7 @@ function Navbar({ title, icon, user, onLogout, onTheme }) {
 }
 
 // ============ HOME ============
-function Home({ onNavigate }) {
+function Home({ onNavigate, onTheme }) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'var(--bg)' }}>
       <div style={{ background: 'var(--bg2)', borderRadius: 32, padding: 48, maxWidth: 800, width: '100%', boxShadow: 'var(--shadow)' }}>
@@ -197,6 +197,16 @@ function Home({ onNavigate }) {
               <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: 13 }}>{r.cta}</span>
             </div>
           ))}
+        </div>
+        
+        {/* Bouton pour changer le thème */}
+        <div style={{ textAlign: 'center', marginTop: 20 }}>
+          <button 
+            onClick={onTheme} 
+            style={{ background: 'var(--bg)', border: '1px solid var(--border)', padding: '10px 20px', borderRadius: 40, cursor: 'pointer', color: 'var(--text)', fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            ☀️ 🌙 Changer de thème
+          </button>
         </div>
       </div>
     </div>
@@ -451,7 +461,7 @@ function Formateur({ currentUser, data, setData, onLogout, onNavigate, onTheme, 
     if (useRealBlockchain && walletConnected) {
       showToast('⏳ Émission du badge sur Polygon...');
       const result = await mintBadge(
-        '0x' + '0'.repeat(40), // Adresse du contrat (à remplacer)
+        '0x' + '0'.repeat(40),
         badgeName,
         levelMap[badgeLevel],
         `ipfs://metadata/${badgeName.replace(/\s/g, '_')}`
@@ -801,7 +811,7 @@ export default function App() {
         ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
       `}</style>
 
-      {page === 'home' && <Home onNavigate={navigate} />}
+      {page === 'home' && <Home onNavigate={navigate} onTheme={toggleTheme} />}
       {page === 'login' && <Login users={users} onLogin={setCurrentUser} onNavigate={navigate} showToast={showToast} />}
       {page === 'loginFormateur' && <LoginFormateur users={users} onLogin={setCurrentUser} onNavigate={navigate} showToast={showToast} />}
       {page === 'register' && <Register users={users} setUsers={setUsers} onLogin={setCurrentUser} onNavigate={navigate} showToast={showToast} />}
