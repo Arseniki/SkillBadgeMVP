@@ -134,7 +134,7 @@ SkillBadge/
 
 ```bash
 # 1. Cloner le dépôt
-git clone https://github.com/ton-pseudo/skillbadge.git
+git clone https://github.com/Arseniki/SkillBadgeMVP.git
 cd skillbadge
 
 # 2. Installer les dépendances
